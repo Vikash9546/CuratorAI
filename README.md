@@ -96,9 +96,26 @@ docker-compose up --build
 
 ## Project Structure
 
-- `frontend/`: React application (modern UI components).
-- `backend/`: FastAPI application (ML logic, Gemini integration).
-- `docker-compose.yml`: Master orchestrator for production deployment.
+```text
+CuratorAI/
+├── backend/                  # FastAPI Application
+│   ├── app.py                # Main application entry point
+│   ├── routes/               # API endpoint definitions (predict, files, health)
+│   ├── services/             # Core ML logic, LLM integration, and Endee DB wrapper
+│   └── models/               # Pydantic schemas for data validation
+├── frontend/                 # React (Vite) Application
+│   ├── src/                  # React source code
+│   │   ├── components/       # Reusable UI components (Sidebar, Chat, etc.)
+│   │   ├── services/         # API integration layer (Axios)
+│   │   └── App.jsx           # Main React component
+│   └── index.html            # Main HTML template
+├── endee-oss/                # Endee Vector Database (C++)
+│   ├── src/                  # Database engine source code
+│   ├── build/                # Compiled binaries
+│   └── run.sh                # Helper script to launch the DB
+├── docker-compose.yml        # Master orchestrator for production deployment
+└── README.md                 # Project documentation
+```
 
 ---
 
