@@ -4,28 +4,28 @@ A high-performance, full-stack **Retrieval-Augmented Generation (RAG)** platform
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### 1. 🧠 Multi-Chat Reasoning System
+### 1. Multi-Chat Reasoning System
 Manage multiple independent AI research sessions simultaneously. 
-- **ChatGPT-Style Sidebar**: Switch between conversations, rename, or delete chats.
+- **In Sidebar**: Switch between conversations, rename, or delete chats.
 - **Persistent Memory**: Your chat history is saved locally in your browser so you never lose context.
 - **Glassmorphism UI**: A premium, dark-mode design built with Tailwind CSS and smooth animations.
 
-### 2. 🗂️ Intelligent Knowledge Vault
+### 2. Intelligent Knowledge Vault
 Upload, index, and query your private documents in seconds.
 - **Neural Search**: Find information based on meaning, not just keywords, using `SentenceTransformers`.
 - **Hybrid OCR**: Integrated **Gemini Vision** to read and extract text from handwritten notes, scanned PDFs, and images.
 - **Document Management**: View all indexed files in the sidebar; delete individual documents or purge the entire index with one click.
 
-### 3. 🛡️ Robust AI Infrastructure
+### 3. Robust AI Infrastructure
 - **Model Rotation**: Automatically fails over between `Gemini 2.5`, `Gemini 3.0`, and `Gemini 2.0` to bypass API outages or quota limits.
 - **Exponential Backoff**: Built-in retry logic for handling transient Google AI Studio stability issues.
 - **Endee-Powered**: Uses a high-performance C++ vector store for sub-millisecond similarity lookups.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -37,7 +37,7 @@ Upload, index, and query your private documents in seconds.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -57,7 +57,7 @@ graph TD
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Requirements
 - Python 3.9+
@@ -83,7 +83,7 @@ npm run dev
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 The project is fully containerized. To launch the entire stack (DB + API + UI):
 
@@ -93,7 +93,7 @@ docker-compose up --build
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 - `frontend/`: React application (modern UI components).
 - `backend/`: FastAPI application (ML logic, Gemini integration).
@@ -101,4 +101,4 @@ docker-compose up --build
 
 ---
 
-*Built for the Endee Assignment | Modernizing AI Knowledge Management.*
+*Modernizing AI Knowledge Management.*
