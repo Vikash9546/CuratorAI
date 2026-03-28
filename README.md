@@ -22,6 +22,7 @@ Upload, index, and query your private documents in seconds.
 - **Model Rotation**: Automatically fails over between `Gemini 2.5`, `Gemini 3.0`, and `Gemini 2.0` to bypass API outages or quota limits.
 - **Exponential Backoff**: Built-in retry logic for handling transient Google AI Studio stability issues.
 - **Endee-Powered**: Uses a high-performance C++ vector store for sub-millisecond similarity lookups.
+- **Resilient RAG Architecture**: Gracefully degrades to a direct LLM reasoning engine if the vector database becomes temporarily unavailable, ensuring uninterrupted chat functionality.
 
 ---
 
@@ -62,7 +63,7 @@ graph TD
 ### 1. Requirements
 - Python 3.9+
 - Node.js 18+
-- Endee Server Running (on port 8080)
+- Endee Server Running on port 8080 (Optional, but required for Document QA / RAG)
 
 ### 2. Backend Setup
 ```bash
