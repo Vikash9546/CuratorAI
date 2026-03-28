@@ -61,24 +61,47 @@ graph TD
 ## Quick Start
 
 ### 1. Requirements
-- Python 3.9+
-- Node.js 18+
-- Endee Server Running on port 8080 (Optional, but required for Document QA / RAG)
+- **Python 3.9+**
+- **Node.js 18+**
+- **Endee Server** (Optional for basic chat, required for RAG/Document QA)
 
-### 2. Backend Setup
+### 2. Run Endee Vector DB (Optional)
+Endee is required if you want to index and query your private documents. Run it in a background terminal process:
 ```bash
-cd backend
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-# Copy .env and add your GEMINI_API_KEY
-uvicorn app:app --port 8000
+cd endee-oss
+# Ensure binary has execute permissions
+chmod +x build/ndd-neon-darwin 
+# Run in background (keeps stdin open)
+(NDD_DATA_DIR=./data ./build/ndd-neon-darwin &)
 ```
 
-### 3. Frontend Setup
+### 3. Backend Setup
+The backend powers the LangChain logic and communicates with Gemini.
+```bash
+cd backend
+python -m venv venv 
+source venv/bin/activate # Use `venv\Scripts\activate` on Windows
+
+pip install -r requirements.txt
+
+# Create environment variables
+echo "GEMINI_API_KEY=your_api_key_here" > .env
+echo "NDD_URL=http://127.0.0.1:8080/api/v1" >> .env
+
+# Start the FastAPI server
+uvicorn app:app --port 8000 --reload
+```
+
+### 4. Frontend Setup
+The modern React UI powered by Vite.
 ```bash
 cd frontend
 npm install
-# Set VITE_API_URL=http://localhost:8000 in .env
+
+# Create environment variables
+echo "VITE_API_URL=http://localhost:8000" > .env
+
+# Start the dev server
 npm run dev
 ```
 
