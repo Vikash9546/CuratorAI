@@ -1,7 +1,6 @@
 import os
 import time
 import fitz  # PyMuPDF
-from sentence_transformers import SentenceTransformer
 from endee import Endee, Precision
 import endee.index
 from dotenv import load_dotenv
@@ -32,6 +31,8 @@ def load_model():
     global _MODEL_INSTANCE
     if _MODEL_INSTANCE is None:
         logger.info("Loading SentenceTransformer model...")
+        # Lazy import to prevent massive lag & Render health check timeout on Startup
+        from sentence_transformers import SentenceTransformer
         _MODEL_INSTANCE = SentenceTransformer("all-MiniLM-L6-v2")
     return _MODEL_INSTANCE
 
