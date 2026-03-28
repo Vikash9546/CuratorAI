@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+/* Design System Colors */
+.bg-deep-black { background-color: #000000; }
+.bg-off-black { background-color: #0b0c0e; }
+.bg-card-dark { background-color: #121418; }
+.text-teal-accent { color: #4eeab8; }
+.bg-teal-accent { background-color: #4eeab8; }
+.border-teal-accent { border-color: #4eeab8; }
+
+/* Effects */
+.glass-effect {
+  background: rgba(18, 20, 24, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.teal-glow {
+  box-shadow: 0 0 20px rgba(78, 234, 184, 0.15);
+}
+
+.text-gradient-teal {
+  background: linear-gradient(135deg, #4eeab8 0%, #29b6f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
