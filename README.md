@@ -1,4 +1,4 @@
-# ⚡ Curator AI | Neural Knowledge Engine
+# Curator AI | Neural Knowledge Engine
 
 A high-performance, full-stack **Retrieval-Augmented Generation (RAG)** platform. This project combines a modern **React (Vite)** interface with a **FastAPI** reasoning engine, powered by the blazingly fast **Endee Vector Database** for long-term AI memory.
 
@@ -43,7 +43,7 @@ Upload, index, and query your private documents in seconds.
 graph TD
     A["Documents (PDF/MD/TXT)"] --> B["FastAPI Extraction / Vision OCR"]
     B --> C["Chunking & Embedding"]
-    C -->|384-dim vectors| E[("⚡ Endee Vector Store")]
+    C -->|384-dim vectors| E[("Endee Vector Store")]
     
     F["User Question"] --> G["React Frontend"]
     G -->|API Call| H["FastAPI Logic"]
