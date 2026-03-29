@@ -17,7 +17,8 @@ async def predict(request: PredictRequest):
         try:
             client = get_endee()
             kb_index = ensure_index(client)
-            query_vec = model.encode([request.query])[0].tolist()
+            encoded = model.encode([request.query])[0]
+            query_vec = encoded.tolist() if hasattr(encoded, 'tolist') else encoded
             kb_results = kb_index.query(vector=query_vec, top_k=3)
             contexts = [f"[Source: {m.get('meta', {}).get('source', 'Unknown')}] {m.get('meta', {}).get('text', '')}" for m in kb_results]
             context_block = "\n\n---\n\n".join(contexts) if contexts else "No relevant documents."

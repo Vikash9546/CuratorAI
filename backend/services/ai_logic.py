@@ -22,18 +22,42 @@ endee.index.Index.is_hybrid = property(patched_is_hybrid)
 INDEX_NAME = "knowledge_base"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
-DIMENSION = 384
+DIMENSION = 768
 
 # Singleton pattern for the loaded model to replace @st.cache_resource
 _MODEL_INSTANCE = None
 
+class GeminiEmbedder:
+    def __init__(self):
+        api_key = os.environ.get("GEMINI_API_KEY")
+        self.client = genai.Client(api_key=api_key) if api_key else None
+
+    def encode(self, texts, batch_size=4):
+        if not self.client: return [[0.0] * DIMENSION for _ in texts]
+        if isinstance(texts, str): texts = [texts]
+        out = []
+        try:
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i:i+batch_size]
+                res = self.client.models.embed_content(model="text-embedding-004", contents=batch)
+                if hasattr(res, 'embeddings'):
+                    out.extend([e.values for e in res.embeddings])
+                else: 
+                     # Handle single response edgecase
+                     out.extend([res.embeddings[0].values] * len(batch))
+        except Exception as e:
+            logger.error(f"Gemini API Embedding Error: {e}")
+            out.extend([[0.0] * DIMENSION for _ in texts])
+        
+        # Guarantee we return the exact length requested
+        while len(out) < len(texts): out.append([0.0] * DIMENSION)
+        return out[:len(texts)]
+
 def load_model():
     global _MODEL_INSTANCE
     if _MODEL_INSTANCE is None:
-        logger.info("Loading SentenceTransformer model...")
-        # Lazy import to prevent massive lag & Render health check timeout on Startup
-        from sentence_transformers import SentenceTransformer
-        _MODEL_INSTANCE = SentenceTransformer("all-MiniLM-L6-v2")
+        logger.info("Loading Lightweight Gemini Embedder...")
+        _MODEL_INSTANCE = GeminiEmbedder()
     return _MODEL_INSTANCE
 
 def get_endee():

@@ -22,7 +22,4 @@ ENV NDD_URL=http://endee-oss:8080
 
 EXPOSE 8000
 
-# Pre-download heavy AI models during build instead of runtime to stop Vercel 5-minute timeouts!
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
-
 CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]

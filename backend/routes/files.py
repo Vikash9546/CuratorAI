@@ -38,7 +38,7 @@ async def upload_files(files: List[UploadFile] = File(...)):
                 vectors = model.encode(chunks, batch_size=4)
                 payloads = [{
                     "id": f"text::{file.filename}::{j}",
-                    "vector": v.tolist(),
+                    "vector": v.tolist() if hasattr(v, 'tolist') else v,
                     "meta": {"text": c, "source": file.filename, "type": "text"},
                     "filter": {"source": file.filename}
                 } for j, (c, v) in enumerate(zip(chunks, vectors))]
