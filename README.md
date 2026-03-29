@@ -1,6 +1,8 @@
 # Curator AI | Neural Knowledge Engine
 
-A high-performance, full-stack **Retrieval-Augmented Generation (RAG)** platform. This project combines a modern **React (Vite)** interface with a **FastAPI** reasoning engine, powered by the blazingly fast **Endee Vector Database** for long-term AI memory.
+A high-performance, completely serverless-friendly **Retrieval-Augmented Generation (RAG)** platform. This project combines a modern **React (Vite)** interface with an ultra-lightweight **FastAPI** reasoning engine, powered by the blazingly fast **Endee Vector Database** for long-term AI memory. 
+
+By offloading heavy Machine Learning computations entirely to the Google Gemini API, the backend boasts a near-zero memory footprint and boots in milliseconds, making it perfectly optimized for free-tier cloud hostings like Render and Railway.
 
 ---
 
@@ -13,9 +15,9 @@ Manage multiple independent AI research sessions simultaneously.
 - **Glassmorphism UI**: A premium, dark-mode design built with Tailwind CSS and smooth animations.
 
 ### 2. Intelligent Knowledge Vault
-Upload, index, and query your private documents in seconds.
-- **Neural Search**: Find information based on meaning, not just keywords, using `SentenceTransformers`.
-- **Hybrid OCR**: Integrated **Gemini Vision** to read and extract text from handwritten notes, scanned PDFs, and images.
+Upload, index, and query your private documents instantaneously.
+- **Lightning-Fast Neural Search**: Find information based on meaning using Google Gemini `text-embedding-004`. Because no heavy local models are used, parsing multi-page documents avoids all Out-Of-Memory (OOM) crashes!
+- **Hybrid OCR**: Integrated **Gemini Vision** to read and extract text from handwritten notes, scanned PDFs, and images safely and efficiently.
 - **Document Management**: View all indexed files in the sidebar; delete individual documents or purge the entire index with one click.
 
 ### 3. Robust AI Infrastructure
@@ -33,8 +35,8 @@ Upload, index, and query your private documents in seconds.
 | **Frontend** | React 18, Vite, Tailwind CSS, Heroicons |
 | **Backend** | FastAPI, Pydantic, Uvicorn |
 | **Vector DB** | **Endee** (Blazing fast local/remote vector store) |
-| **LLM** | Google Gemini (1.5, 2.0, 2.5, 3.0 Flash/Pro) |
-| **Embeddings** | `all-MiniLM-L6-v2` (Sentence-Transformers) |
+| **LLM Reasoning** | Google Gemini (1.5, 2.0, 2.5, 3.0 Flash/Pro) |
+| **Embeddings** | Google Gemini API (`text-embedding-004`) |
 
 ---
 
@@ -43,12 +45,12 @@ Upload, index, and query your private documents in seconds.
 ```mermaid
 graph TD
     A["Documents (PDF/MD/TXT)"] --> B["FastAPI Extraction / Vision OCR"]
-    B --> C["Chunking & Embedding"]
-    C -->|384-dim vectors| E[("Endee Vector Store")]
+    B --> C["Gemini Embeddings API"]
+    C -->|768-dim vectors| E[("Endee Vector Store")]
     
     F["User Question"] --> G["React Frontend"]
     G -->|API Call| H["FastAPI Logic"]
-    H -->|Vectorization| I["Similarity Search (Endee)"]
+    H -->|Gemini Vectorization| I["Similarity Search (Endee)"]
     I -->|"Relevant Context"| J["LLM Reasoning (Gemini)"]
     J -->|"Fact-Grounded Response"| G
 
@@ -76,7 +78,7 @@ chmod +x build/ndd-neon-darwin
 ```
 
 ### 3. Backend Setup
-The backend powers the LangChain logic and communicates with Gemini.
+The backend powers the lightweight API routing logic and communicates entirely with Google's APIs.
 ```bash
 cd backend
 python -m venv venv 
@@ -88,7 +90,7 @@ pip install -r requirements.txt
 echo "GEMINI_API_KEY=your_api_key_here" > .env
 echo "NDD_URL=http://127.0.0.1:8080/api/v1" >> .env
 
-# Start the FastAPI server
+# Start the FastAPI server (Boots almost instantly!)
 uvicorn app:app --port 8000 --reload
 ```
 
@@ -107,13 +109,14 @@ npm run dev
 
 ---
 
-## Docker Deployment
+## Docker Deployment (Production)
 
-The project is fully containerized. To launch the entire stack (DB + API + UI):
+The project is fully containerized. To launch the entire stack locally or on a VPS (DB + API + UI):
 
 ```bash
 docker-compose up --build
 ```
+*Note: Because the backend is fully decoupled from localized ML models, the Docker container uses `<100MB` of RAM!*
 
 ---
 
@@ -121,10 +124,10 @@ docker-compose up --build
 
 ```text
 CuratorAI/
-├── backend/                  # FastAPI Application
+├── backend/                  # Lightweight FastAPI Application
 │   ├── app.py                # Main application entry point
 │   ├── routes/               # API endpoint definitions (predict, files, health)
-│   ├── services/             # Core ML logic, LLM integration, and Endee DB wrapper
+│   ├── services/             # Core LLM/Embedding integration and Endee DB wrapper
 │   └── models/               # Pydantic schemas for data validation
 ├── frontend/                 # React (Vite) Application
 │   ├── src/                  # React source code
