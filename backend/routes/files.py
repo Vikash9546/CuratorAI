@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from typing import List
 import os
 import tempfile
+import logging
 from models.schemas import FileUploadResponse, FileDeleteRequest, BasicResponse
 from services.ai_logic import (
     get_endee, ensure_index, extract_text, vision_ocr_pdf, chunk_text, 
@@ -9,12 +10,42 @@ from services.ai_logic import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+def process_file_background(path: str, filename: str, ext: str):
+    """Processes OCR and embeddings in the background to avoid Render timeout limits."""
+    try:
+        client = get_endee()
+        idx = ensure_index(client)
+        model = load_model()
+        
+        text = extract_text(path, filename)
+        # Only use Vision if absolutely zero standard text is found (Scanned PDF)
+        if not text.strip() and ext == ".pdf":
+            logger.info(f"Extracting OCR for {filename}...")
+            text = vision_ocr_pdf(path)
+            
+        if text.strip():
+            chunks = chunk_text(text)
+            vectors = model.encode(chunks, batch_size=4)
+            payloads = [{
+                "id": f"text::{filename}::{j}",
+                "vector": v.tolist() if hasattr(v, 'tolist') else v,
+                "meta": {"text": c, "source": filename, "type": "text"},
+                "filter": {"source": filename}
+            } for j, (c, v) in enumerate(zip(chunks, vectors))]
+            idx.upsert(payloads)
+            logger.info(f"Successfully indexed background file: {filename}")
+        else:
+            logger.warning(f"No text extracted for {filename}")
+            
+    except Exception as e:
+        logger.error(f"Background upload error for {filename}: {e}")
+    finally:
+        os.unlink(path)
 
 @router.post("/upload", response_model=List[FileUploadResponse])
-async def upload_files(files: List[UploadFile] = File(...)):
-    client = get_endee()
-    idx = ensure_index(client)
-    model = load_model()
+async def upload_files(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     responses = []
     
     for file in files:
@@ -28,26 +59,9 @@ async def upload_files(files: List[UploadFile] = File(...)):
                 tmp.write(await file.read())
                 path = tmp.name
                 
-            text = extract_text(path, file.filename)
-            if not text.strip() and ext == ".pdf":
-                text = vision_ocr_pdf(path)
-                
-            if text.strip():
-                chunks = chunk_text(text)
-                # Use a small batch_size to prevent Out Of Memory crashes on Render Free Tier
-                vectors = model.encode(chunks, batch_size=4)
-                payloads = [{
-                    "id": f"text::{file.filename}::{j}",
-                    "vector": v.tolist() if hasattr(v, 'tolist') else v,
-                    "meta": {"text": c, "source": file.filename, "type": "text"},
-                    "filter": {"source": file.filename}
-                } for j, (c, v) in enumerate(zip(chunks, vectors))]
-                idx.upsert(payloads)
-                responses.append(FileUploadResponse(filename=file.filename, status="success", message="Indexed successfully"))
-            else:
-                responses.append(FileUploadResponse(filename=file.filename, status="skipped", message="No text extracted"))
-                
-            os.unlink(path)
+            # Add to background queue instead of keeping the browser waiting
+            background_tasks.add_task(process_file_background, path, file.filename, ext)
+            responses.append(FileUploadResponse(filename=file.filename, status="success", message="Processing in background (Refresh list in 1 minute)"))
         except Exception as e:
             responses.append(FileUploadResponse(filename=file.filename, status="error", message=str(e)))
             
