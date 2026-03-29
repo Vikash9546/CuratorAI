@@ -33,23 +33,50 @@ class GeminiEmbedder:
         self.client = genai.Client(api_key=api_key) if api_key else None
 
     def encode(self, texts, batch_size=4):
-        if not self.client: return [[0.0] * DIMENSION for _ in texts]
+        if self.client is None: return [[0.0] * DIMENSION for _ in texts]
         if isinstance(texts, str): texts = [texts]
         out = []
+        
+        models_to_try = [
+            "text-embedding-004", 
+            "models/text-embedding-004", 
+            "gemini-embedding-exp-03-07", 
+            "gemini-embedding-001", 
+            "models/gemini-embedding-001"
+        ]
+        active_model = None
+
         try:
+            from google.genai import types
             for i in range(0, len(texts), batch_size):
                 batch = texts[i:i+batch_size]
-                res = self.client.models.embed_content(model="text-embedding-004", contents=batch)
+                res = None
+                
+                # Try fallback models until we find one that doesn't 404
+                for m_name in models_to_try:
+                    try:
+                        res = self.client.models.embed_content(
+                            model=m_name, 
+                            contents=batch,
+                            config=types.EmbedContentConfig(output_dimensionality=DIMENSION)
+                        )
+                        active_model = m_name
+                        break
+                    except Exception as try_err:
+                        if "404" in str(try_err) or "not found" in str(try_err).lower(): continue
+                        raise try_err
+                
+                if not res: raise ValueError("No valid embedding model found for this API Key.")
+                
                 if hasattr(res, 'embeddings'):
                     out.extend([e.values for e in res.embeddings])
                 else: 
-                     # Handle single response edgecase
                      out.extend([res.embeddings[0].values] * len(batch))
+                     
         except Exception as e:
             logger.error(f"Gemini API Embedding Error: {e}")
             out.extend([[0.0] * DIMENSION for _ in texts])
         
-        # Guarantee we return the exact length requested
         while len(out) < len(texts): out.append([0.0] * DIMENSION)
         return out[:len(texts)]
 
