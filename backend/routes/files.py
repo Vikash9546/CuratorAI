@@ -34,7 +34,8 @@ async def upload_files(files: List[UploadFile] = File(...)):
                 
             if text.strip():
                 chunks = chunk_text(text)
-                vectors = model.encode(chunks)
+                # Use a small batch_size to prevent Out Of Memory crashes on Render Free Tier
+                vectors = model.encode(chunks, batch_size=4)
                 payloads = [{
                     "id": f"text::{file.filename}::{j}",
                     "vector": v.tolist(),

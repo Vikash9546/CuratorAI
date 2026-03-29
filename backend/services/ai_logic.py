@@ -104,7 +104,7 @@ def vision_ocr_pdf(filepath):
                 continue
         return ""
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         results = list(executor.map(process_page, range(len(doc))))
             
     doc.close()
