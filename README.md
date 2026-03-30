@@ -4,6 +4,9 @@ A high-performance, completely serverless-friendly **Retrieval-Augmented Generat
 
 By offloading heavy Machine Learning computations entirely to the Google Gemini API, the backend boasts a near-zero memory footprint and boots in milliseconds, making it perfectly optimized for free-tier cloud hostings like Render and Railway.
 
+
+Demo:- [Live](https://curator-ai-tau.vercel.app/)
+
 ---
 
 ## Key Features
