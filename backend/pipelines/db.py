@@ -46,8 +46,16 @@ def load_model():
 def get_chroma_client():
     default_path = "/tmp/chroma_db" if os.environ.get("RENDER") else "./chroma_db"
     db_path = os.environ.get("CHROMA_DB_PATH", default_path)
-    os.makedirs(db_path, exist_ok=True)
-    return chromadb.PersistentClient(path=db_path)
+    
+    try:
+        os.makedirs(db_path, exist_ok=True)
+        return chromadb.PersistentClient(path=db_path)
+    except Exception:
+        # Fallback to /tmp if configured path fails (e.g. Render free tier)
+        fallback = "/tmp/chroma_db"
+        os.makedirs(fallback, exist_ok=True)
+        logger.warning(f"ChromaDB path '{db_path}' failed, falling back to '{fallback}'")
+        return chromadb.PersistentClient(path=fallback)
 
 def ensure_collection(client):
     return client.get_or_create_collection(name=INDEX_NAME)
