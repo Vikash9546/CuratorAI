@@ -5,12 +5,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI(title="Curator AI Backend", description="FastAPI REST Backend for Endee Vector DB", version="1.0.0")
+app = FastAPI(title="Curator AI Backend", description="FastAPI REST Backend for Curator AI", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For production, restrict this
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
