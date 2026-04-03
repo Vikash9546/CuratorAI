@@ -1,9 +1,8 @@
 # Curator AI | Neural Knowledge Engine
 
-A high-performance, completely serverless-friendly **Retrieval-Augmented Generation (RAG)** platform. This project combines a modern **React (Vite)** interface with an ultra-lightweight **FastAPI** reasoning engine, powered by the blazingly fast **Endee Vector Database** for long-term AI memory. 
+A high-performance, completely serverless-friendly **Retrieval-Augmented Generation (RAG)** platform. This project combines a modern **React (Vite)** interface with an ultra-lightweight **FastAPI** reasoning engine, powered by the **Groq API** and natively integrated **ChromaDB** for long-term AI memory. 
 
-By offloading heavy Machine Learning computations entirely to the Google Gemini API, the backend boasts a near-zero memory footprint and boots in milliseconds, making it perfectly optimized for free-tier cloud hostings like Render and Railway.
-
+By utilizing blazing-fast Groq LPU inference and a strictly localized native Python vector store, the backend boasts an incredibly lightweight infrastructure, making it perfectly optimized for free-tier cloud hostings like Render, Vercel, and Railway without needing heavy Docker containers.
 
 Demo:- [Live](https://curator-ai-tau.vercel.app/)
 
@@ -17,17 +16,16 @@ Manage multiple independent AI research sessions simultaneously.
 - **Persistent Memory**: Your chat history is saved locally in your browser so you never lose context.
 - **Glassmorphism UI**: A premium, dark-mode design built with Tailwind CSS and smooth animations.
 
-### 2. Intelligent Knowledge Vault
-Upload, index, and query your private documents instantaneously.
-- **Lightning-Fast Neural Search**: Find information based on meaning using Google Gemini `text-embedding-004`. Because no heavy local models are used, parsing multi-page documents avoids all Out-Of-Memory (OOM) crashes!
-- **Hybrid OCR**: Integrated **Gemini Vision** to read and extract text from handwritten notes, scanned PDFs, and images safely and efficiently.
+### 2. Intelligent Knowledge Vault (Pipelines)
+Upload, index, and query your private documents instantaneously (Supports `.txt` and `.pdf`).
+- **Lightning-Fast Neural Search**: Find information based on meaning using Hugging Face's `all-mpnet-base-v2` embeddings.
+- **Hybrid OCR**: Integrated **Groq Vision (`llama-3.2-90b-vision-preview`)** to read and extract text from handwritten notes, scanned PDFs, and images safely and efficiently.
 - **Document Management**: View all indexed files in the sidebar; delete individual documents or purge the entire index with one click.
 
 ### 3. Robust AI Infrastructure
-- **Model Rotation**: Automatically fails over between `Gemini 2.5`, `Gemini 3.0`, and `Gemini 2.0` to bypass API outages or quota limits.
-- **Exponential Backoff**: Built-in retry logic for handling transient Google AI Studio stability issues.
-- **Endee-Powered**: Uses a high-performance C++ vector store for sub-millisecond similarity lookups.
-- **Resilient RAG Architecture**: Gracefully degrades to a direct LLM reasoning engine if the vector database becomes temporarily unavailable, ensuring uninterrupted chat functionality.
+- **Powered by Groq**: Sub-second text reasoning utilizing `llama-3.3-70b-versatile` running on advanced LPU hardware.
+- **ChromaDB Native Vector Store**: 100% serverless data storage—fully embedded right inside the Python runtime environment. No complex standalone database servers needed!
+- **Data Ingestion & Retrieval Pipelines**: Clean, separated backend architectures to easily extend your ETL and RAG patterns.
 
 ---
 
@@ -37,9 +35,9 @@ Upload, index, and query your private documents instantaneously.
 |-------|------------|
 | **Frontend** | React 18, Vite, Tailwind CSS, Heroicons |
 | **Backend** | FastAPI, Pydantic, Uvicorn |
-| **Vector DB** | **Endee** (Blazing fast local/remote vector store) |
-| **LLM Reasoning** | Google Gemini (1.5, 2.0, 2.5, 3.0 Flash/Pro) |
-| **Embeddings** | Google Gemini API (`text-embedding-004`) |
+| **Vector DB** | **ChromaDB** (Native Python Mode) |
+| **LLM Reasoning** | Groq API (`llama-3.3-70b-versatile`, `llama-3.2-90b-vision-preview`) |
+| **Embeddings** | Hugging Face API (`all-mpnet-base-v2`) |
 
 ---
 
@@ -47,14 +45,14 @@ Upload, index, and query your private documents instantaneously.
 
 ```mermaid
 graph TD
-    A["Documents (PDF/MD/TXT)"] --> B["FastAPI Extraction / Vision OCR"]
-    B --> C["Gemini Embeddings API"]
-    C -->|768-dim vectors| E[("Endee Vector Store")]
+    A["Documents (PDF/TXT)"] --> B["Data Ingestion Pipeline"]
+    B --> C["Hugging Face Embeddings"]
+    C -->|768-dim vectors| E[("ChromaDB Vector Store")]
     
     F["User Question"] --> G["React Frontend"]
-    G -->|API Call| H["FastAPI Logic"]
-    H -->|Gemini Vectorization| I["Similarity Search (Endee)"]
-    I -->|"Relevant Context"| J["LLM Reasoning (Gemini)"]
+    G -->|API Call| H["Retrieval Pipeline"]
+    H -->|Query Vectorization| I["Similarity Search (ChromaDB)"]
+    I -->|"Relevant Context"| J["Groq LLM Reasoning"]
     J -->|"Fact-Grounded Response"| G
 
     style E fill:#1a1a2e,stroke:#4eeab8,stroke-width:2px,color:#fff
@@ -68,20 +66,9 @@ graph TD
 ### 1. Requirements
 - **Python 3.9+**
 - **Node.js 18+**
-- **Endee Server** (Optional for basic chat, required for RAG/Document QA)
 
-### 2. Run Endee Vector DB (Optional)
-Endee is required if you want to index and query your private documents. Run it in a background terminal process:
-```bash
-cd endee-oss
-# Ensure binary has execute permissions
-chmod +x build/ndd-neon-darwin 
-# Run in background (keeps stdin open)
-(NDD_DATA_DIR=./data ./build/ndd-neon-darwin &)
-```
-
-### 3. Backend Setup
-The backend powers the lightweight API routing logic and communicates entirely with Google's APIs.
+### 2. Backend Setup
+The backend powers the lightweight API routing and AI pipelines, storing data via local ChromaDB.
 ```bash
 cd backend
 python -m venv venv 
@@ -90,14 +77,14 @@ source venv/bin/activate # Use `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 
 # Create environment variables
-echo "GEMINI_API_KEY=your_api_key_here" > .env
-echo "NDD_URL=http://127.0.0.1:8080/api/v1" >> .env
+echo "GROQ_API_KEY=your_groq_api_key_here" > .env
 
 # Start the FastAPI server (Boots almost instantly!)
 uvicorn app:app --port 8000 --reload
 ```
+*(ChromaDB will automatically spawn a `./chroma_db` folder to strictly persist data locally!)*
 
-### 4. Frontend Setup
+### 3. Frontend Setup
 The modern React UI powered by Vite.
 ```bash
 cd frontend
@@ -112,25 +99,17 @@ npm run dev
 
 ---
 
-## Docker Deployment (Production)
-
-The project is fully containerized. To launch the entire stack locally or on a VPS (DB + API + UI):
-
-```bash
-docker-compose up --build
-```
-*Note: Because the backend is fully decoupled from localized ML models, the Docker container uses `<100MB` of RAM!*
-
----
-
 ## Project Structure
 
 ```text
 CuratorAI/
 ├── backend/                  # Lightweight FastAPI Application
 │   ├── app.py                # Main application entry point
+│   ├── pipelines/            # Modular Data Ingestion & Retrieval logic
+│   │   ├── ingestion.py      # Chunking, OCR & DB insertion logic
+│   │   ├── retrieval.py      # Search & LLM text synthesis logic
+│   │   └── db.py             # ChromaDB and Embedder client definitions
 │   ├── routes/               # API endpoint definitions (predict, files, health)
-│   ├── services/             # Core LLM/Embedding integration and Endee DB wrapper
 │   └── models/               # Pydantic schemas for data validation
 ├── frontend/                 # React (Vite) Application
 │   ├── src/                  # React source code
@@ -138,11 +117,6 @@ CuratorAI/
 │   │   ├── services/         # API integration layer (Axios)
 │   │   └── App.jsx           # Main React component
 │   └── index.html            # Main HTML template
-├── endee-oss/                # Endee Vector Database (C++)
-│   ├── src/                  # Database engine source code
-│   ├── build/                # Compiled binaries
-│   └── run.sh                # Helper script to launch the DB
-├── docker-compose.yml        # Master orchestrator for production deployment
 └── README.md                 # Project documentation
 ```
 

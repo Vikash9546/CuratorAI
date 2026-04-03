@@ -4,41 +4,17 @@ import os
 import tempfile
 import logging
 from models.schemas import FileUploadResponse, FileDeleteRequest, BasicResponse
-from services.ai_logic import (
-    get_endee, ensure_index, extract_text, vision_ocr_pdf, chunk_text, 
-    load_model, get_indexed_files, delete_by_filename
-)
+from pipelines.db import get_chroma_client, get_indexed_files, delete_by_filename
+from pipelines.ingestion import DataIngestionPipeline
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 def process_file_background(path: str, filename: str, ext: str):
-    """Processes OCR and embeddings in the background to avoid Render timeout limits."""
+    """Processes OCR and embeddings in the background using the dedicated Data Ingestion Pipeline."""
     try:
-        client = get_endee()
-        idx = ensure_index(client)
-        model = load_model()
-        
-        text = extract_text(path, filename)
-        # Only use Vision if absolutely zero standard text is found (Scanned PDF)
-        if not text.strip() and ext == ".pdf":
-            logger.info(f"Extracting OCR for {filename}...")
-            text = vision_ocr_pdf(path)
-            
-        if text.strip():
-            chunks = chunk_text(text)
-            vectors = model.encode(chunks, batch_size=4)
-            payloads = [{
-                "id": f"text::{filename}::{j}",
-                "vector": v.tolist() if hasattr(v, 'tolist') else v,
-                "meta": {"text": c, "source": filename, "type": "text"},
-                "filter": {"source": filename}
-            } for j, (c, v) in enumerate(zip(chunks, vectors))]
-            idx.upsert(payloads)
-            logger.info(f"Successfully indexed background file: {filename}")
-        else:
-            logger.warning(f"No text extracted for {filename}")
-            
+        pipeline = DataIngestionPipeline()
+        pipeline.run(path, filename, ext)
     except Exception as e:
         logger.error(f"Background upload error for {filename}: {e}")
     finally:
@@ -50,8 +26,8 @@ async def upload_files(background_tasks: BackgroundTasks, files: List[UploadFile
     
     for file in files:
         ext = os.path.splitext(file.filename)[1].lower()
-        if ext not in [".pdf", ".md", ".txt"]:
-            responses.append(FileUploadResponse(filename=file.filename, status="skipped", message="Unsupported extension"))
+        if ext not in [".pdf", ".txt"]:
+            responses.append(FileUploadResponse(filename=file.filename, status="skipped", message="Unsupported extension (Only PDF and TXT allowed)"))
             continue
             
         try:
@@ -69,13 +45,13 @@ async def upload_files(background_tasks: BackgroundTasks, files: List[UploadFile
 
 @router.get("/files")
 async def list_files():
-    client = get_endee()
+    client = get_chroma_client()
     files = get_indexed_files(client)
     return {"files": files}
 
 @router.delete("/files")
 async def delete_file(req: FileDeleteRequest):
-    client = get_endee()
+    client = get_chroma_client()
     success = delete_by_filename(client, req.filename)
     if success:
         return BasicResponse(status="success", message=f"Deleted {req.filename}")
@@ -83,9 +59,9 @@ async def delete_file(req: FileDeleteRequest):
 
 @router.delete("/wipe", response_model=BasicResponse)
 async def wipe_collection():
-    client = get_endee()
+    client = get_chroma_client()
     try:
-        client.delete_index("knowledge_base")
+        client.delete_collection("knowledge_base")
         return BasicResponse(status="success", message="Index wiped successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

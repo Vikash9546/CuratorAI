@@ -7,4 +7,4 @@ dist/
 __pycache__/
 *.pyc
 .DS_Store
-endee-oss/
+chroma_db/

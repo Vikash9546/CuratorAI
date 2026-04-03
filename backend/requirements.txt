@@ -2,8 +2,9 @@ fastapi
 uvicorn
 pydantic
 python-multipart
-endee
+chromadb
 pymupdf
 python-dotenv
-google-genai
 pillow
+groq
+requests

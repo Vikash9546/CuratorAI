@@ -57,6 +57,7 @@ const InputBox = ({ onSend, onFileUpload, isLoading }) => {
         <input 
           type="file" 
           multiple 
+          accept="application/pdf,text/plain,.pdf,.txt"
           ref={fileInputRef} 
           className="hidden" 
           onChange={(e) => onFileUpload(e.target.files)} 
