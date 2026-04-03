@@ -44,7 +44,9 @@ def load_model():
     return _MODEL_INSTANCE
 
 def get_chroma_client():
-    db_path = os.environ.get("CHROMA_DB_PATH", "./chroma_db")
+    default_path = "/tmp/chroma_db" if os.environ.get("RENDER") else "./chroma_db"
+    db_path = os.environ.get("CHROMA_DB_PATH", default_path)
+    os.makedirs(db_path, exist_ok=True)
     return chromadb.PersistentClient(path=db_path)
 
 def ensure_collection(client):

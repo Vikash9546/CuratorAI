@@ -45,9 +45,13 @@ async def upload_files(background_tasks: BackgroundTasks, files: List[UploadFile
 
 @router.get("/files")
 async def list_files():
-    client = get_chroma_client()
-    files = get_indexed_files(client)
-    return {"files": files}
+    try:
+        client = get_chroma_client()
+        files = get_indexed_files(client)
+        return {"files": files}
+    except Exception as e:
+        logger.error(f"Error listing files: {e}")
+        return {"files": []}
 
 @router.delete("/files")
 async def delete_file(req: FileDeleteRequest):
